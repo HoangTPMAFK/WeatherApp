@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="/build/css/styles.css">
+    <script defer src="/build/js/main.js"></script>
+</head>
+<body class="min-h-screen text-white bg-green-500">
+    <header class="bg-teal-600 text-white sticky top-0 z-10 justify-center">
+        <section class="max-w-4xl p-4 flex flex-row justify-between mx-auto">
+            <a href="" class="text-nowrap text-3xl">Weather App</a>
+            <div id="search-bar" class="hidden md:flex justify-between gap-3">
+                <input type="text" name="" id="search-bar-field" class="border rounded-xl bg-white text-black pl-3 w-80" placeholder="Province/City's name">
+                <button id="search-btn" class="rounded-xl border border-black bg-white aspect-square h-auto flex justify-center items-center cursor-pointer active:bg-gray-400">
+                    <img src="/build/images/search.png" class="aspect-square h-6">
+                </button>
+            </div>
+            <!-- <div id="not-found" class="text-red-600">Province/City not found</div> -->
+        </section>
+    </header>
+    <main class="">
+        <section class="max-w-4xl mx-auto border lg:my-8 shadow-xl rounded-md relative bg-green-600">
+            <article class="md:hidden pt-4">
+                <div id="mobile-search-bar" class="flex flex-row justify-around">
+                    <input type="text" name="" id="mobile-search-bar-field" class="border rounded-xl bg-white text-black pl-3 w-9/12" placeholder="Province/City's name">
+                    <button id="mobile-search-btn" class="rounded-xl border border-black bg-white aspect-square h-auto flex justify-center items-center active:bg-gray-400 p-2">
+                        <img src="/build/images/search.png" class="aspect-square h-6">
+                    </button>
+                </div>
+            </article>
+            <article class="flex flex-col text-4xl mb-12 items-center text-white">
+                <div id="weather-icon">
+                    <img src="">
+                </div>
+                <div id="temp">
+                    <p>_°C</p>
+                </div>
+                <div id="city" class="text-center">
+                    <p>_, _</p>
+                </div>
+                <div id="feel-like" class="text-xl">
+                    <p>Feel like _°C</p>
+                </div>
+            </article>
+            <article class="flex flex-col items-center md:flex-row text-white justify-around">
+                <div id="humidity" class="text-xl text-center flex flex-row gap-3 mb-4">
+                    <img src="/build/images/humidity.png" class="h-20 w-20">
+                    <div id="humidity-info">
+                        <span class="text-3xl">_%</span>
+                        <p class="text-2xl">Humidity</p>
+                    </div>
+                </div>
+                <div id="wind-speed" class="text-xl text-center flex flex-row gap-3 mb-4">
+                    <img src="/build/images/wind.png" class="h-20 w-20">
+                    <div id="wind-speed-info">
+                        <span class="text-3xl">_ km/h</span>
+                        <p class="text-2xl">Wind speed</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+        <section class="max-w-4xl mx-auto">
+            <div id="hourly-weather-overflow" class="w-full border my-10 overflow-x-auto hidden flex-row gap-4">
+                <!-- <div class="w-20 h-36 bg-white mx-2 flex-shrink-0 items-center"></div> -->
+            </div>
+        </section>
+        <section class="max-w-4xl mx-auto">
+            <article id="daily-weather-overflow" class="my-4 border w-full hidden flex-col overflow-y-auto h-36">
+                <!-- <div class="w-full h-20 bg-white mt-2 shrink-0"></div>
+                <div class="w-full h-20 bg-white mt-2 shrink-0"></div>
+                <div class="w-full h-20 bg-white mt-2 shrink-0"></div> -->
+            </article>
+        </section>
+    </main>
+</body>
+</html>
