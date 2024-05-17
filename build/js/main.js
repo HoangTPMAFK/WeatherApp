@@ -9,16 +9,25 @@ const weatherIcon = document.querySelector("#weather-icon").querySelector("img")
 const feelLikeLabel = document.querySelector("#feel-like").querySelector("p");
 const hourlyWeatherContainer = document.querySelector("#hourly-weather-overflow");
 const dailyWeatherContainer = document.querySelector("#daily-weather-overflow");
+const currentWeatherContainer = document.querySelector("#current-weather-info");
+const headerBar = document.querySelector("header");
+const initSearchBtn = document.querySelector("#init-search-button");
+const initFrame = document.querySelector("#init-frame");
+const graphToggleBtn = document.querySelector("#graph-toggle-btn");
+const hourlyTempGraph = document.querySelector("#hourly-temperature-chart");
+const dawnTime = document.querySelector("#dawn-container").querySelector("p");
+const sunsetTime = document.querySelector("#sunset-container").querySelector("p");
+let xValues = [""];
+let maxYValue = -99;
+let minYValue = 99;
+let yValues = [,];
 console.log(searchBtn);
 console.log(mobileSearchBtn);
 console.log(weatherIcon);
-fetch("https://api.open-meteo.com/v1/forecast?latitude=16.0678&longitude=108.2208&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m&timezone=Asia%2FBangkok&forecast_days=3")
-    .then(result => {return result.json()})
-    .then(data =>console.log(data))
-    .catch();
 const apiOWKey = "06ef294c6616022fc66cff355be7ccbf";
 let cityname = document.querySelector("#search-bar-field");
 let cityname_mobile = document.querySelector("#mobile-search-bar-field");
+let cityname_init = document.querySelector("#init-search-bar-field");
 function displayTemp(temp) {
     tempLabel.textContent = temp + "°C";
 }
@@ -41,16 +50,51 @@ function displayFeelLikeTemp(temp) {
 function displayHourlyWeather(lat, lon) {
 
 }
+function displayDawnTime(time) {
+    dawnTime.textContent = time;
+}
+function displaySunsetTime(time) {
+    sunsetTime.textContent = time;
+}
+function createGraph() {
+    new Chart(hourlyTempGraph, {
+        type: "line",
+        data: {
+          labels: xValues,
+          datasets: [{
+            fill: false,
+            lineTension: 0,
+            backgroundColor: "rgba(0,0,255,1.0)",
+            borderColor: "rgba(7,5,255,0.7)",
+            data: yValues
+          }]
+        },
+        options: {
+          legend: {display: false},
+          scales: {
+            yAxes: [{ticks: {min: Math.round(minYValue - 2), max: Math.round(maxYValue + 2)}}],
+          }
+        }
+      });
+      hourlyTempGraph.classList.toggle("hidden");
+}
 const getCurrentWeatherApi = (cityname) => fetch(`https://api.openweathermap.org/data/2.5/weather?q=${cityname.value}&appid=${apiOWKey}`)
     .then(jsonResult => {return jsonResult.json()})
     .then(data => {
         console.log(data);
+        currentWeatherContainer.classList.remove("hidden");
+        headerBar.classList.remove("hidden");
+        initFrame.classList.add("hidden");
         let temp = Math.round(data.main.temp-272.15);
         let countryCode = data.sys.country;
         let windSpeed = Math.round(data.wind.speed * 3.6);
         let humidity = data.main.humidity;
         let weather = data.weather[0].main;
         let feelLikeTemp = Math.round(data.main.feels_like-272.15);
+        let dawn = new Date(data.sys.sunrise*1000);
+        let sunset = new Date(data.sys.sunset*1000);
+        displayDawnTime("0" + dawn.getHours() + ":" + (dawn.getMinutes() >= 10 ? dawn.getMinutes() : "0" + dawn.getMinutes()));
+        displaySunsetTime(sunset.getHours() + ":" + (sunset.getMinutes() >= 10 ? sunset.getMinutes() : "0" + sunset.getMinutes()));
         getGeocodingApi(cityname.value);
         console.log(temp);
         console.log(weather);
@@ -109,26 +153,19 @@ const getHourlyWeatherInfo = (lat, lon) => {
                     break;
                 }
             }
-            hourlyWeatherContainer.classList.remove("hidden");
-            hourlyWeatherContainer.classList.add("flex");
+            document.querySelector("#hourly-weather-section").classList.remove("hidden");
             while (hourlyWeatherContainer.lastChild) {
                 hourlyWeatherContainer.lastChild.remove();
             }
+            xValues = [""];
+            yValues = [,];
             for (let j = 0; j < 12; j++) {
                 const newDivs = document.createElement("div");
-                newDivs.classList.add("w-20", "h-36", "bg-white", "mx-2",  "flex-shrink-0", "text-white", "flex", "flex-col", "items-center");
-                // newDivs.style.width = "80px";
-                // newDivs.style.height = "144px";
-                // newDivs.style.backgroundColor = "white";
-                // newDivs.style.flexShrink = "0";
-                // newDivs.style.marginLeft = "8px";
-                // newDivs.style.marginRight = "8px";
-                // newDivs.style.display = "flex";
-                // newDivs.style.flexDirection = "column";
-                // newDivs.style.alignItems = "center";
+                newDivs.classList.add("w-20", "h-36", "bg-slate-100", "mx-2",  "flex-shrink-0", "text-white", "flex", "flex-col", "items-center");
                 const hour = document.createElement("p");
                 hour.style.color = "black";
                 hour.textContent = timeInDay[i].split("T")[1];
+                xValues.push(timeInDay[i].split("T")[1]);
                 const weatherIcon = document.createElement("img");
                 if ([0, 1, 2].indexOf(data.hourly.weather_code[i]) != -1) {
                     weatherIcon.src = "/build/images/clear.png";
@@ -146,18 +183,26 @@ const getHourlyWeatherInfo = (lat, lon) => {
                     weatherIcon.src = "/build/images/storm.png";
                 }
                 weatherIcon.style.height = "60px";
+                weatherIcon.classList.add("hover:scale-125");
                 const temperatureP = document.createElement("p");
                 temperatureP.style.fontSize = "24px";
                 temperatureP.style.color = "black";
                 temperatureP.style.textAlign = "center";
                 console.log(Math.round(data.hourly.temperature_2m[i]));
                 temperatureP.textContent = Math.round(data.hourly.temperature_2m[i]) + "°C";
+                yValues.push(Math.round(data.hourly.temperature_2m[i]));
+                if (data.hourly.temperature_2m[i] > maxYValue ) 
+                    maxYValue = data.hourly.temperature_2m[i];
+                if (data.hourly.temperature_2m[i] < minYValue) minYValue = data.hourly.temperature_2m[i];
                 i++;
                 newDivs.appendChild(hour);
                 newDivs.appendChild(weatherIcon);
                 newDivs.appendChild(temperatureP);
                 hourlyWeatherContainer.append(newDivs);
             }
+            xValues.push("");
+            yValues.push();
+            createGraph(xValues);
             console.log(data);
         })
         .catch(err => console.log(err));
@@ -165,18 +210,22 @@ const getHourlyWeatherInfo = (lat, lon) => {
 const getDailyWeatherInfo = (lat, lon) => {
     const timezone = String(Intl.DateTimeFormat().resolvedOptions().timeZone);
     timezone.replace(" ", "%2F");
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,wind_speed_10m_max&timezone=${timezone}&forecast_days=3`)
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,wind_speed_10m_max&timezone=${timezone}&forecast_days=7`)
         .then(resultJSON => {return resultJSON.json()})
         .then(data => {
             console.log(data);
-            dailyWeatherContainer.classList.remove("hidden");
-            dailyWeatherContainer.classList.add("flex");
+            document.querySelector("#daily-weather-section").classList.remove("hidden");
             while (dailyWeatherContainer.lastChild) {
                 dailyWeatherContainer.lastChild.remove();
             }
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 7; i++) {
                 const newDivs = document.createElement("div");
-                newDivs.classList.add("w-full", "h-20", "bg-white", "mt-2", "shrink-0", "flex", "flex-row", "items-center", "justify-around");
+                newDivs.classList.add("w-full", "h-24", "bg-slate-100", "my-2", "shrink-0", "flex", "flex-col", "items-center", "rounded-lg");
+                const weatherContainer = document.createElement("div");
+                weatherContainer.classList.add("w-full", "h-16", "shrink-0", "flex", "flex-row", "items-center", "justify-around", "rounded-lg");
+                const dateInfo = document.createElement("div");
+                dateInfo.classList.add("text-black");
+                dateInfo.textContent = data.daily.time[i].split("-")[2] + "/" + data.daily.time[i].split("-")[1];
                 const weatherIcon = document.createElement("img");
                 weatherIcon.style.width = "60px";
                 if ([0, 1, 2].indexOf(data.daily.weather_code[i]) != -1) {
@@ -194,18 +243,18 @@ const getDailyWeatherInfo = (lat, lon) => {
                 } else {
                     weatherIcon.src = "/build/images/storm.png";
                 }
-                newDivs.append(weatherIcon);
-
+                weatherIcon.classList.add("hover:scale-125");
+                weatherContainer.append(weatherIcon);
                 const tempText = document.createElement("div");
                 const tempLabel = document.createElement("div");
                 tempLabel.classList.add("text-black");
                 tempLabel.textContent = "Temperature";
                 const temp = document.createElement("div");
                 tempText.classList.add("flex", "flex-col");
-                temp.innerHTML = `<span class="text-xl md:text-2xl text-black">${Math.round(data.daily.temperature_2m_max[i])}°C</span> <span class="text-lg text-black opacity-40">${Math.round(data.daily.temperature_2m_min[i])}°C</span>`;
+                temp.innerHTML = `<span class="text-xl md:text-2xl text-black">${Math.round(data.daily.temperature_2m_max[i])}°C</span> <span class="text-lg text-black opacity-90">${Math.round(data.daily.temperature_2m_min[i])}°C</span>`;
                 tempText.append(tempLabel);
                 tempText.append(temp);
-                newDivs.append(tempText);
+                weatherContainer.append(tempText);
 
                 const feelLikeTempText = document.createElement("div");
                 const feelLikeLabel = document.createElement("div");
@@ -213,10 +262,10 @@ const getDailyWeatherInfo = (lat, lon) => {
                 feelLikeLabel.textContent = "Feel like";
                 const feelLikeTemp = document.createElement("div");
                 feelLikeTempText.classList.add("flex", "flex-col");
-                feelLikeTemp.innerHTML = `<span class="text-xl md:text-2xl text-black">${Math.round(data.daily.apparent_temperature_max[i])}°C</span> <span class="text-lg text-black opacity-40">${Math.round(data.daily.apparent_temperature_min[i])}°C</span>`;
+                feelLikeTemp.innerHTML = `<span class="text-xl md:text-2xl text-black">${Math.round(data.daily.apparent_temperature_max[i])}°C</span> <span class="text-lg text-black opacity-90">${Math.round(data.daily.apparent_temperature_min[i])}°C</span>`;
                 feelLikeTempText.append(feelLikeLabel);
                 feelLikeTempText.append(feelLikeTemp);
-                newDivs.append(feelLikeTempText);
+                weatherContainer.append(feelLikeTempText);
 
                 const windSpeedText = document.createElement("div");
                 const windSpeedLabel = document.createElement("div");
@@ -227,7 +276,10 @@ const getDailyWeatherInfo = (lat, lon) => {
                 windSpeedTemp.innerHTML = `<span class="text-xl md:text-2xl text-black">${Math.round(data.daily.wind_speed_10m_max[i])}km/h</span>`;
                 windSpeedText.append(windSpeedLabel);
                 windSpeedText.append(windSpeedTemp);
-                newDivs.append(windSpeedText);
+                weatherContainer.append(windSpeedText);
+                newDivs.append(dateInfo);
+                newDivs.append(dateInfo);
+                newDivs.append(weatherContainer);
                 dailyWeatherContainer.append(newDivs);
             }
         })
@@ -239,5 +291,26 @@ const displayWeatherInfos = () => {
 const displayWeatherInfosOnMobile = () => {
     getCurrentWeatherApi(cityname_mobile);
 }
+const displayWeatherInfosFirstTime = () => {
+    getCurrentWeatherApi(cityname_init);
+}
+const toggleTempGraph = () => {
+    document.querySelector("#hourly-temp-graph-container").classList.toggle("hidden");
+}
 searchBtn.addEventListener("click", displayWeatherInfos);
 mobileSearchBtn.addEventListener("click", displayWeatherInfosOnMobile);
+initSearchBtn.addEventListener("click", displayWeatherInfosFirstTime);
+graphToggleBtn.addEventListener("click", toggleTempGraph);
+const initApp = () => {
+    const hamburgerBtn = document.querySelector("#hamburger-button");
+    const mobileMenuBar = document.querySelector("#mobile-menu-sidebar");
+    hamburgerBtn.addEventListener('click', () => {
+        mobileMenuBar.classList.toggle("block");
+        mobileMenuBar.classList.toggle("hidden");
+    });
+    mobileMenuBar.addEventListener('click', () => {
+        mobileMenuBar.classList.toggle("block");
+        mobileMenuBar.classList.toggle("hidden");
+    });
+}
+document.addEventListener('DOMContentLoaded', initApp);
